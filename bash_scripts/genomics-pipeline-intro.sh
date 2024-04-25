@@ -1,5 +1,25 @@
 #!/bin/bash
 
+#SBATCH --account=utu_4310
+#SBATCH --partition=lonepeak
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --time=99:00:00
+#SBATCH -o slurm%j.out-%N
+#SBATCH -e slurm-%j.err-%N
+
+################
+# Load modules #
+################
+
+module load fastq
+module load fastp
+module load samtools
+module load freebayes
+module load jacquard
+
+
+
 {
 usage="$(basename "$0") [-h] [-l <SRA_list>] [-g <reference_genome.fasta>] [-a <Frequency>] [-t <threads>]
 This program will call variants using freebayes in given SRA NGS sequences files to obtain major viral variants.
