@@ -154,8 +154,9 @@ Multiple software packages can facilitate hard filtering of a VCF. These include
 Filter variants based on their quality of depth (which incorporates variant confidence and raw depth):
 ```
 gatk --java-options "-Xmx16g" VariantFiltration \
-        -R  \
+        -R  covid19-refseq.fasta \
         -V merged.vcf \
+        -O qd_filtered.vcf \
         --filter-name "QD" \
         --filter-expression "QD < 2.0"
 ```
