@@ -1,0 +1,16 @@
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf singletons_filtered.recode.vcf
+	--recode-INFO-all
+	--max-missing 0.3
+	--out missing_filtered
+	--recode
+
+After filtering, kept 9 out of 9 Individuals
+Outputting VCF file...
+After filtering, kept 0 out of a possible 17 Sites
+No data left for analysis!
+Run Time = 0.00 seconds

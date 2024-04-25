@@ -147,7 +147,11 @@ There are 1597 variants contained within this VCF file.
 #### Why filter variants?
 When you call variants from an alignment file, you identify all sites where a read has a base call that is different than the reference. This includes sites with low coverage (a.k.a. read depth), sites with low allele depth (e.g., the read depth may be sufficient, but only one read varies from the reference), sites you are uninterested in (i.e., if you are focused on target loci you may not want to include all the called variants), and sites with low genotype quality. If left unfiltered, you risk including large amounts of false positives within your dataset. During downstream analysis these false positives may mask true biological patterns, therefore it is critical to remove them through a process known as variant filtration.
 
-There are different strategies of variant filtration. For model organisms with known sites of variation, it is possible to perform [variant quality score recalibration](https://gatk.broadinstitute.org/hc/en-us/articles/360035531612-Variant-Quality-Score-Recalibration-VQSR) (VQSR), a machine learning approach that uses a training dataset of known variants to recalibrate the variants. This is not possible in many non-model organisms without a dataset of known variants. An additional approach is sometimes called ["hard filtering"](https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants), which is where you decide on cutoff values for the genotype fields within a vcf. In this overview we focus on hard filtering.
+There are different strategies of variant filtration. For model organisms with known sites of variation, it is possible to perform [variant quality score recalibration](https://gatk.broadinstitute.org/hc/en-us/articles/360035531612-Variant-Quality-Score-Recalibration-VQSR) (VQSR), a machine learning approach that uses a training dataset of known variants
+
+to recalibrate the variants. This is not possible in many non-model organisms without a dataset of known variants. An additional approach is sometimes called ["hard filtering"](https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants), which is where you decide on cutoff values for the genotype fields within a vcf. In this overview we focus on hard filtering.
+
+Before filtering, you need to index your reference. This can be done using samtools and picard (I've already created index [fai] and dictionary [dict] files for the reference for the reference in this repository).
 
 Multiple software packages can facilitate hard filtering of a VCF. These include [GATK](https://gatk.broadinstitute.org/hc/en-us/articles/360037434691-VariantFiltration), [vcftools](https://vcftools.sourceforge.net/man_latest.html), and [bcftools](https://samtools.github.io/bcftools/bcftools.html). With these packages you can do things like the following:
 
@@ -156,92 +160,66 @@ Filter variants based on their quality of depth (which incorporates variant conf
 gatk --java-options "-Xmx16g" VariantFiltration \
         -R  covid19-refseq.fasta \
         -V merged.vcf \
-        -O qd_filtered.vcf \
+        -O qd_marked.vcf \
         --filter-name "QD" \
         --filter-expression "QD < 2.0"
 ```
 
+For sites that pass this filtering criteria, they will be marked with ```PASS''' in the ```FILTER''' section of the VCF. If they don't pass the filtering criteria, they will be marked with ```QD''' in the ```FILTER''' section of the VCF. You can add multiple filtering criteria within this gatk command:
+
+```
+gatk --java-options "-Xmx16g" VariantFiltration \
+        -R  covid19-refseq.fasta \
+        -V merged.vcf \
+        -O qd_marked.vcf \
+        --filter-name "QD" \
+        --filter-expression "QD < 2.0" \
+        --filter-name "SOR" \
+        --filter-expression "SOR > 3.0" \
+        --filter-name "FS" \
+        --filter-expression "FS > 60.0"
+```
+
+To remove sites that didn't pass your filtering criteria, you can use an awk command to remove anything that doesn't have ```PASS''' in the ```FILTER''' section of the vcf.
+
+```
+awk '/^#/||$7=="PASS"' qd_marked.vcf > qd_filtered.vcf
+```
+
+Using vcftools and bcftools, you can do many types of filtration:
+```
+# remove low-quality genotyping
+vcftools --vcf qd_filtered.vcf --out gq_filtered --minDP 10 --recode --recode-INFO-all
+# remove individuals from sites where they have low depth
+vcftools --vcf gq_filtered.recode.vcf --out indDepth_filtered --minDP 10 --recode --recode-INFO-all
+# remove sites that have more than 2 alleles
+bcftools view -m2 -M2 -v snps indDepth_filtered.recode.vcf > multiallelic_filtered.vcf
+# remove singletons (sites where only one individual has the alternate allele)
+vcftools --vcf multiallelic_filtered.vcf --out singletons_filtered --mac 2 --recode --recode-INFO-all
+# rename final file
+mv singletons_filtered.recode.vcf filtered.vcf
+```
+
+
 # <a name="exercise"></a>
 # Exercise
-The basic workflow and data for this exercise come from [Farkas et al., 2021](https://doi.org/10.3389/fmicb.2021.665041) and the associated [github repository](https://github.com/cfarkas/SARS-CoV-2-freebayes).
+The data for this exercise come from [Farkas et al., 2021](https://doi.org/10.3389/fmicb.2021.665041) and the associated [github repository](https://github.com/cfarkas/SARS-CoV-2-freebayes).
+
+The ```merged.vcf''' file is the output file from the [genomics-pipeline-intro](https://github.com/KLab-UT/genomics-pipeline-intro) repository.
 
 ## Exercise Objective
-Download and analyze a small sample of genomic data using published scripts to see an applied process of genomic data processing.
+1. Modify the ```genomics-pipeline-intro.sh''' file so that it is compatible with the CHPC. In other words, add lines of code that will enable this script to run as a batch script so that the following command would work on the CHPC:
 
+    ```
+    sbatch bash_scripts/genomics-pipeline-intro.sh -l July_28_2020_NorAm.txt -g covid19-refseq.fasta -a 0.4999 -t 4
+    ```
 
-To complete this exercise, complete the following steps and answer the questions contained within the worksheet.md file.
+You don't need to run the full script- you already have the output (```merged.vcf''') here in this repository. You only need to modify the script so that it could be run on the CHPC.
 
-
-## Exercise set up
-> note: if you haven't cloned this repository yet, make sure you have it cloned (see [Getting set up](#getting-set-up) section)
-
-1.  Make sure [mini/anaconda](https://docs.conda.io/en/latest/miniconda.html) and python versions = 2.7 and >=3.0 are installed.
-2.  Make sure you are in repository directory and activate conda environment
-```
-conda config --add channels conda-forge                        # add conda-forge channel (if you haven't already done so)
-conda config --add channels bioconda                           # add bioconda channel (if you haven't already done so)
-conda env update --file environment.yml                        # install required programs
-conda activate genomics-pipeline-intro                         # activate genomics-pipeline-intro enviroment
-```
-
-3. Install the latest version of sra toolkit. See instructions here:
-```
-https://github.com/ncbi/sra-tools/wiki/02.-Installing-SRA-Toolkit
-```
-
-## Raw reads to vcf
-
-For this exercise, you will run a bash script containing an abbreviated version of the genomics processing pipeline from [Farkas et al., 2021](https://doi.org/10.3389/fmicb.2021.665041).
-
-You can see the parameters required for the script by looking at the help menu:
-```
-bash bash_scripts/genomics-pipeline-intro.sh -h
-```
-
-You should also check out the script itself. You may not understand some of it (or most of it), but it is sometimes useful to see how parameters are being used within the script.
-```
-less bash_scripts/genomics-pipeline-intro.sh
-```
->note: to escape reader mode in less, simply type `q`
-
-Now that you have examined the script, run it.
-
-```
-bash bash_scripts/genomics-pipeline-intro.sh -l July_28_2020_NorAm.txt -g covid19-refseq.fasta -a 0.4999 -t 4
-```
-
-You should see messages printing to stdout as the script runs. The first of these messages will look like this:
-```
-Downloading SRA files from the given list of accessions
-
-2022-03-19T16:00:22 prefetch.2.11.2: Current preference is set to retrieve SRA Lite files with simplified base quality scores.
-2022-03-19T16:00:23 prefetch.2.11.2: 1) Downloading 'SRR11851929'...
-2022-03-19T16:00:23 prefetch.2.11.2: SRA Normalized Format file is being retrieved, if this is different from your preference, it may be due to current file availability.
-2022-03-19T16:00:23 prefetch.2.11.2:  Downloading via HTTPS...
-2022-03-19T16:00:26 prefetch.2.11.2:  HTTPS download succeed
-2022-03-19T16:00:26 prefetch.2.11.2:  'SRR11851929' is valid
-2022-03-19T16:00:26 prefetch.2.11.2: 1) 'SRR11851929' was downloaded successfully
-2022-03-19T16:00:26 prefetch.2.11.2: 'SRR11851929' has 0 unresolved dependencies
-```
-
-> note: Running into error messages is part of the coding experience. If you run into an error message, don't get too discouraged! First, read the error message. Is it an easy fix? If you aren't sure, copy and paste the error message into an online search engine to see if anyone else has experienced the error and discovered a solution. If you continue having trouble, reach out to your instructor over email to ask for help.
-
-The script will take a few minutes to run. Once the finished, check that everything ran to completion. Your directory should now contain 8 .fastq.gz files, 8 .bam files, 8 VCF files beginning with ```SRR```, and 1 merged.vcf file. You can verify this information with the following commands:
-```
-ls *.fastq.gz | wc -l            # Number of .fastq.gz files
-ls -l *.fastq.gz                 # Make sure the .fastq.gz files aren't empty
-                                 # note: The fifth column of this output is the file size in bytes
-ls *.bam | wc -l                 # Number of .bam files
-ls -l *.bam                      # Make sure the .bam files aren't empty
-ls SRR*.vcf | wc -l              # Number of SRR*.vcf files
-ls -l SRR*.vcf                   # Make sure the *.vcf files aren't empty
-ls -l merged.vcf                 # Make sure the merged.vcf file isn't empty
-grep -v "#" merged.vcf | wc -l   # Count the number of SNPs within merged.vcf
-```
-
-If the above check worked, congratulations! You successfully ran a published bioinformatics pipeline! Once again, this is not a complete bioinformatics pipeline. The sampling was significantly reduced to allow for shorter computation time, and downstream variant processing is required.
+2. Perform the filtering steps specified in the walkthrough above (using GATK, vcftools, and bcftools).
 
 Once you have completed the worksheet, add, commit, and push the worksheet and the logfile to your forked repository.
+
 ```
 add worksheet.md logfile
 git commit -m "ran script and answered worksheet questions"

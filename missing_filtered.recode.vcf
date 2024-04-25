@@ -1,0 +1,33 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##FILTER=<ID=FS,Description="FS > 60.0">
+##FILTER=<ID=QD,Description="QD < 2.0">
+##FILTER=<ID=SOR,Description="SOR > 3.0">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Number of observation for each allele">
+##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=GL,Number=G,Type=Float,Description="Genotype Likelihood, log10-scaled likelihoods of the data given the called genotype for each possible genotype generated from the reference and alternate alleles given the sample ploidy">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
+##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
+##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+##GATKCommandLine=<ID=VariantFiltration,CommandLine="VariantFiltration --output qd_marked.vcf --filter-expression QD < 2.0 --filter-expression SOR > 3.0 --filter-expression FS > 60.0 --filter-name QD --filter-name SOR --filter-name FS --variant merged.vcf --reference covid19-refseq.fasta --cluster-size 3 --cluster-window-size 0 --mask-extension 0 --mask-name Mask --filter-not-in-mask false --missing-values-evaluate-as-failing false --invalidate-previous-filters false --invert-filter-expression false --invert-genotype-filter-expression false --set-filtered-genotype-to-no-call false --apply-allele-specific-filters false --interval-set-rule UNION --interval-padding 0 --interval-exclusion-padding 0 --interval-merging-rule ALL --read-validation-stringency SILENT --seconds-between-progress-updates 10.0 --disable-sequence-dictionary-validation false --create-output-bam-index true --create-output-bam-md5 false --create-output-variant-index true --create-output-variant-md5 false --max-variants-per-shard 0 --lenient false --add-output-sam-program-record true --add-output-vcf-command-line true --cloud-prefetch-buffer 40 --cloud-index-prefetch-buffer -1 --disable-bam-index-caching false --sites-only-vcf-output false --help false --version false --showHidden false --verbosity INFO --QUIET false --use-jdk-deflater false --use-jdk-inflater false --gcs-max-retries 20 --gcs-project-for-requester-pays  --disable-tool-default-read-filters false",Version="4.4.0.0",Date="April 25, 2024 at 10:18:03 AM MDT">
+##INFO=<ID=JQ_MULT_ALT_LOCUS,Number=0,Type=Flag,Description="More than one alt allele was seen at this locus.">
+##contig=<ID=NC_045512.2,length=29903>
+##jacquard.merge.sample=<Column=1,Name=*|unknown,Source=*.bam.freebayes.vcf>
+##jacquard.merge.sample=<Column=2,Name=SRR11621811|unknown,Source=SRR11621811.bam.freebayes.vcf>
+##jacquard.merge.sample=<Column=3,Name=SRR11772640|unknown,Source=SRR11772640.bam.freebayes.vcf>
+##jacquard.merge.sample=<Column=4,Name=SRR11851929|unknown,Source=SRR11851929.bam.freebayes.vcf>
+##jacquard.merge.sample=<Column=5,Name=SRR11953870|unknown,Source=SRR11953870.bam.freebayes.vcf>
+##jacquard.merge.sample=<Column=6,Name=SRR11954244|unknown,Source=SRR11954244.bam.freebayes.vcf>
+##jacquard.merge.sample=<Column=7,Name=SRR12045940|unknown,Source=SRR12045940.bam.freebayes.vcf>
+##jacquard.merge.sample=<Column=8,Name=SRR12272284|unknown,Source=SRR12272284.bam.freebayes.vcf>
+##jacquard.merge.sample=<Column=9,Name=SRR12291581|unknown,Source=SRR12291581.bam.freebayes.vcf>
+##jacquard=<timestamp="2024-04-24 23:11:29",command="['merge', '--include_all', './', 'merged.vcf']",cwd="/Users/r_klabacka/Library/CloudStorage/OneDrive-UtahTechUniversity/Teaching/UtahTech/AdvancedBioinformatics/2024_Spring/Exercises/Exercise_2",source="Jacquard",version="1.1.5">
+##source=VariantFiltration
+##bcftools_viewVersion=1.16+htslib-1.16
+##bcftools_viewCommand=view -m2 -M2 -v snps indDepth_filtered.recode.vcf; Date=Thu Apr 25 10:19:11 2024
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	*|unknown	SRR11621811|unknown	SRR11772640|unknown	SRR11851929|unknown	SRR11953870|unknown	SRR11954244|unknown	SRR12045940|unknown	SRR12272284|unknown	SRR12291581|unknown
